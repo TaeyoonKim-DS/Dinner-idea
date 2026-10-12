@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>우리집 저녁</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#2E6A4C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="우리집 저녁">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EFE8; --paper:#F7F9F5; --ink:#1E2922; --muted:#617066; --line:#C9D5CB;
+  --leaf:#2E6A4C; --leaf-soft:#D5E6DA; --chili:#B5402B; --chili-soft:#F3DDD6;
+  --display:"Do Hyeon","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141A16; --paper:#1C241F; --ink:#E6EEE7; --muted:#9AAA9F; --line:#33413A;
+    --leaf:#7DC59E; --leaf-soft:#22382B; --chili:#F08A72; --chili-soft:#3A2420;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141A16; --paper:#1C241F; --ink:#E6EEE7; --muted:#9AAA9F; --line:#33413A;
+  --leaf:#7DC59E; --leaf-soft:#22382B; --chili:#F08A72; --chili-soft:#3A2420;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:640px;margin:0 auto;padding:20px 18px 64px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--leaf);outline-offset:2px;border-radius:6px}
+
+/* hero */
+.hero{padding:12px 4px 22px}
+.hero .when{color:var(--muted);font-size:15px;margin:0}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(44px,13vw,72px);line-height:1.02;margin:6px 0 10px;letter-spacing:-0.01em;word-break:keep-all}
+.hero .side{font-size:17px;color:var(--muted);margin:0}
+.hero .time{display:inline-block;margin-top:14px;background:var(--chili-soft);color:var(--chili);padding:3px 12px;border-radius:999px;font-size:14px;font-weight:600}
+
+/* tabs */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;gap:6px;padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:18px}
+.tabs button{flex:1;border:0;background:transparent;padding:10px 6px;border-radius:10px;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.tabs .count{font-weight:400;opacity:.75;font-size:13px;margin-left:4px}
+.panel[hidden]{display:none}
+
+/* week */
+.days{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.day{border-bottom:1px solid var(--line)}
+.day > button{width:100%;display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:10px;background:none;border:0;text-align:left;padding:14px 4px;cursor:pointer}
+.day .dname{font-family:var(--display);font-size:24px;color:var(--muted)}
+.day.today .dname{color:var(--chili)}
+.day .menu{font-weight:600;font-size:16px;line-height:1.35}
+.day .menu small{display:block;font-weight:400;color:var(--muted);font-size:14px}
+.day .chev{color:var(--muted);transition:transform .2s}
+.day.open .chev{transform:rotate(90deg)}
+.detail{padding:0 4px 20px 58px}
+.detail[hidden]{display:none}
+h3{font-size:14px;color:var(--muted);font-weight:600;margin:14px 0 6px}
+.ing{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.ing li{background:var(--leaf-soft);color:var(--leaf);border-radius:8px;padding:2px 10px;font-size:14px}
+ol.steps{margin:0;padding-left:20px}
+ol.steps li{margin-bottom:6px;cursor:pointer;padding:2px 4px;border-radius:6px}
+ol.steps li.stepdone{text-decoration:line-through;color:var(--muted)}
+.cook{margin-top:14px;border:1px solid var(--leaf);background:transparent;color:var(--leaf);border-radius:10px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer}
+.cook[aria-pressed="true"]{background:var(--leaf);color:var(--bg)}
+.hint{font-size:13px;color:var(--muted);margin:6px 0 0}
+.tip{background:var(--paper);border-left:3px solid var(--leaf);padding:8px 12px;border-radius:0 8px 8px 0;font-size:14px;margin-top:10px}
+
+/* today detail in hero */
+.today-detail{background:var(--paper);border-radius:16px;padding:6px 18px 18px;margin-bottom:26px;border:1px solid var(--line)}
+
+/* shopping */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--leaf);border-color:var(--leaf);color:var(--bg)}
+.progress{height:6px;background:var(--line);border-radius:999px;overflow:hidden;margin:4px 0 6px}
+.progress span{display:block;height:100%;background:var(--leaf);transition:width .25s}
+.progress-label{font-size:14px;color:var(--muted);margin:0 0 16px}
+.group h2{font-family:var(--display);font-weight:400;font-size:24px;margin:22px 0 4px}
+.group .gnote{font-size:13px;color:var(--muted);margin:0 0 6px}
+.items{list-style:none;margin:0;padding:0}
+.item label{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:start;padding:11px 2px;border-bottom:1px dashed var(--line);cursor:pointer}
+.item input{width:22px;height:22px;margin:2px 0 0;accent-color:var(--leaf);cursor:pointer}
+.item .name{font-weight:500;line-height:1.35}
+.item .name small{display:block;color:var(--muted);font-weight:400;font-size:13px}
+.item .qty{font-size:14px;color:var(--muted);white-space:nowrap;padding-top:1px}
+.item.done .name{text-decoration:line-through;color:var(--muted)}
+.empty{padding:28px 8px;text-align:center;color:var(--muted)}
+.reset{margin-top:22px;border:1px solid var(--line);background:transparent;border-radius:10px;padding:10px 14px;font-size:14px;cursor:pointer;color:var(--muted)}
+.note{font-size:14px;color:var(--muted);margin-top:18px}
+.pitem{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px dashed var(--line)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex:none}
+.seg button{border:0;background:var(--paper);padding:6px 12px;font-size:13px;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--leaf);color:var(--bg)}
+.seg button.no[aria-pressed="true"]{background:var(--chili);color:var(--bg)}
+.skipbtn{border:1px dashed var(--muted);background:transparent;color:var(--muted);border-radius:10px;padding:6px 12px;font-size:13px;cursor:pointer;margin-top:12px}
+.skipbtn[aria-pressed="true"]{border-style:solid;border-color:var(--leaf);color:var(--leaf)}
+.skipnote{background:var(--leaf-soft);color:var(--leaf);border-radius:10px;padding:8px 12px;font-size:14px;margin-top:12px}
+.day.skipped .menu{color:var(--muted);text-decoration:line-through}
+.hero h1.skipped{text-decoration:line-through;color:var(--muted)}
+.tmr{border:1px solid var(--leaf);background:var(--leaf-soft);color:var(--leaf);border-radius:999px;font-size:12px;padding:1px 9px;margin-left:4px;cursor:pointer;font-weight:600;white-space:nowrap}
+.timerbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--ink);color:var(--bg);padding:8px 14px calc(8px + env(safe-area-inset-bottom,0px))}
+.timerbar[hidden]{display:none}
+.timerbar .t{display:flex;align-items:center;gap:10px;max-width:640px;margin:0 auto;padding:4px 0}
+.timerbar .tl{flex:1;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.timerbar .tt{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums}
+.timerbar .t.done .tl{color:var(--chili-soft);font-weight:600}
+.timerbar button{border:1px solid currentColor;background:transparent;color:inherit;border-radius:8px;padding:4px 10px;font-size:13px;cursor:pointer}
+body.has-timer .wrap{padding-bottom:160px}
+.banner{background:var(--leaf-soft);border-radius:14px;padding:12px 14px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.banner[hidden]{display:none}
+.banner p{margin:0 0 4px;flex-basis:100%;font-size:15px}
+.alt{margin-top:18px;border:1px solid var(--chili-soft);background:var(--paper);border-radius:12px;padding:4px 14px 14px}
+.alt h4{font-family:var(--display);font-weight:400;font-size:22px;margin:10px 0 0;color:var(--chili)}
+.alt .who{font-size:13px;color:var(--muted);margin:0}
+.alt .ing li{background:var(--chili-soft);color:var(--chili)}
+.badge{display:inline-block;font-size:12px;background:var(--chili-soft);color:var(--chili);border-radius:6px;padding:0 6px;margin-left:4px;font-weight:500}
+.tag{font-size:12px;color:var(--chili);font-weight:600}
+.upload{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px}
+.upload label.f{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+.upload select{width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-bottom:12px}
+.btn{display:block;width:100%;text-align:center;border:0;border-radius:12px;padding:14px;background:var(--leaf);color:var(--bg);font-weight:600;font-size:16px;cursor:pointer}
+.btn[disabled]{opacity:.6;cursor:wait}
+.status{font-size:14px;color:var(--muted);margin:10px 0 0;min-height:1.2em}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:20px}
+.photo{margin:0;background:var(--paper);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.photo img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:var(--line)}
+.photo figcaption{padding:8px 10px;font-size:13px;line-height:1.4}
+.photo figcaption b{display:block;font-weight:600;font-size:14px}
+.photo .del{border:0;background:none;color:var(--muted);font-size:12px;padding:0;margin-top:4px;cursor:pointer;text-decoration:underline}
+.wk{grid-column:1/-1;font-family:var(--display);font-weight:400;font-size:22px;margin:8px 0 -4px}
+.backup{margin-top:28px;border-top:1px solid var(--line);padding-top:6px}
+.meter{font-size:13px;color:var(--muted);margin-top:16px}
+.thumbs{display:flex;gap:8px;overflow-x:auto;margin-top:12px}
+.thumbs img{width:84px;height:84px;object-fit:cover;border-radius:10px;flex:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:420px){.detail{padding-left:4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero" id="hero"></header>
+
+  <div class="banner" id="weekBanner" hidden>
+    <p>새로운 주가 시작됐어요. 지난주 장보기 체크와 건너뛴 날을 지울까요?</p>
+    <button class="chip" id="wbClear" aria-pressed="true">체크 지우기</button>
+    <button class="chip" id="wbKeep">그대로 두기</button>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="t-week" aria-selected="true" aria-controls="p-week">이번 주</button>
+    <button role="tab" id="t-shop" aria-selected="false" aria-controls="p-shop">장보기<span class="count" id="shopCount"></span></button>
+    <button role="tab" id="t-pantry" aria-selected="false" aria-controls="p-pantry">집 재료<span class="count" id="pantryCount"></span></button>
+    <button role="tab" id="t-photo" aria-selected="false" aria-controls="p-photo">사진<span class="count" id="photoCount"></span></button>
+  </nav>
+
+  <section class="panel" id="p-week" role="tabpanel">
+    <ul class="days" id="days"></ul>
+  </section>
+
+  <section class="panel" id="p-shop" role="tabpanel" hidden>
+    <div class="toolbar" id="storeFilter"></div>
+    <div class="toolbar">
+      <button class="chip" id="hideDone" aria-pressed="false">남은 것만 보기</button>
+      <button class="chip" id="shareList">남은 목록 보내기</button>
+    </div>
+    <p class="status" id="shareStatus" role="status"></p>
+    <div class="progress"><span id="bar"></span></div>
+    <p class="progress-label" id="barLabel"></p>
+    <div id="shopList"></div>
+    <p class="note" id="dropNote"></p>
+    <button class="reset" id="resetShop">장보기 체크 모두 지우기</button>
+    <p class="note">연어, 새우, 소고기는 사고 2~3일 안에 쓰는 게 좋아요. 주말에 한 번 장 보고, 수요일쯤 이 세 가지만 따로 사도 돼요.</p>
+  </section>
+
+  <section class="panel" id="p-photo" role="tabpanel" hidden>
+    <div class="upload" id="uploadBox">
+      <label class="f" for="photoDay">어떤 요리 사진인가요?</label>
+      <select id="photoDay"></select>
+      <input type="file" id="photoInput" accept="image/*" hidden>
+      <button class="btn" id="photoBtn">사진 찍기 · 올리기</button>
+      <p class="status" id="photoStatus" role="status"></p>
+    </div>
+    <p class="note">사진은 이 휴대폰 안에만 저장돼요. 남겨두고 싶은 사진은 "저장"을 눌러 사진첩에도 보관하세요.</p>
+    <div class="gallery" id="gallery"></div>
+    <p class="meter" id="meter"></p>
+    <div class="backup">
+      <h3>휴대폰을 바꾸거나 데이터를 옮길 때</h3>
+      <p class="hint">사진과 체크 기록을 파일 하나로 저장하고, 다른 휴대폰에서 불러올 수 있어요.</p>
+      <div class="toolbar"><button class="chip" id="backupBtn">백업 파일 만들기</button><button class="chip" id="restoreBtn">백업 불러오기</button></div>
+      <input type="file" id="restoreInput" accept="application/json,.json" hidden>
+      <p class="status" id="backupStatus" role="status"></p>
+    </div>
+  </section>
+
+  <section class="panel" id="p-pantry" role="tabpanel" hidden>
+    <p class="progress-label">각 재료가 집에 있는지 골라주세요. "없어요"로 고른 재료만 장보기 목록에 들어가요.</p>
+    <p class="hint" id="pantryNote"></p>
+    <ul class="items" id="pantryList"></ul>
+    <button class="reset" id="resetPantry">집 재료 체크 모두 지우기</button>
+    <p class="note">아내분 몫이 들어가는 국물에는 소고기·치킨 스톡 대신 멸치 육수나 채소 스톡(vegetable stock cube)을 쓰세요. 고추장과 김치는 큰 Sainsbury's나 Asda에도 보통 있지만, 된장은 한인·아시안 마트에서 사는 게 확실해요.</p>
+  </section>
+</div>
+<div class="timerbar" id="timerBar" hidden role="status" aria-live="polite"></div>
+
+<script>
+const DAYS = ["일","월","화","수","목","금","토"];
+const MEALS = {
+  1:{menu:"제육볶음",side:"밥 · 계란국",time:"30분",
+     ing:["돼지 앞다리살 400g","양파 ½","당근 ⅓","대파 1","계란 2"],
+     steps:["양념(고추장 2, 고춧가루 1, 간장 1, 설탕 1, 다진 마늘 1, 참기름 1 큰술)에 고기를 15분 재워요.","센 불에 고기를 먼저 볶다가 거의 익으면 양파·당근을 넣어요.","대파를 넣고 1분 더 볶아 마무리해요.","계란국: 물 600ml 끓여 간장·소금 간, 풀어둔 계란 2개를 돌려 넣고 파를 올려요."],
+     tip:"밥은 일요일 볶음밥용까지 넉넉히 해서 남은 건 냉동해 두세요.",
+     alt:{menu:"오징어볶음",ing:["오징어 250g","양파 ¼","당근 약간","대파 ½"],
+       steps:["고기를 재우기 전에 양념의 ⅓을 따로 덜어두세요.","오징어는 안쪽에 칼집을 내고 한입 크기로 썰어요.","다른 팬에서 채소를 센 불에 1분 볶고, 오징어와 덜어둔 양념을 넣어 2~3분만 볶아요.","오래 볶으면 질겨지니 색이 하얗게 변하면 바로 불을 꺼요."]}},
+  2:{menu:"연어 오븐구이",side:"구운 감자 · 브로콜리",time:"35분",
+     ing:["연어 2조각","베이비 감자 400g","브로콜리 1","레몬 1","버터"],
+     steps:["오븐을 200°C로 예열해요.","감자를 반 갈라 올리브오일·소금에 버무려 20분 구워요.","연어와 브로콜리를 같은 팬에 올리고 소금·후추, 버터 조금 올려 12~15분 더 구워요.","레몬즙을 뿌려 마무리해요."]},
+  3:{menu:"된장찌개",side:"계란말이",time:"30분",
+     ing:["두부 ½팩","감자 2~3","courgette ½","양파 ½","버섯 한 줌","계란 3","대파"],
+     steps:["물 500ml에 된장 2큰술(고추장 ½ 선택)을 풀고 깍둑 썬 감자를 5분 끓여요.","애호박·양파·버섯·다진 마늘을 넣고 5분 더 끓여요.","두부를 넣고 3분, 대파로 마무리해요.","계란말이: 계란 3개 + 파 + 소금 약간, 약불에서 얇게 부어 말아요."]},
+  4:{menu:"닭다리살 간장구이 덮밥",side:"데친 브로콜리",time:"30분",
+     ing:["닭다리살 500g","브로콜리 1","대파","마늘"],
+     steps:["소스: 간장 3, 설탕 1.5, 물 3, 다진 마늘 1 큰술을 섞어요.","닭 껍질 쪽부터 중불에 6분, 뒤집어 4분 구워요.","소스를 붓고 윤기 날 때까지 졸여요.","썰어서 밥 위에 올리고 데친 브로콜리를 곁들여요."],
+     alt:{menu:"두부 간장구이 덮밥",ing:["단단한 두부 ½팩","옥수수전분 (cornflour) 1큰술","간장 소스 ⅓"],
+       steps:["소스를 만들면 ⅓을 따로 덜어두세요.","두부를 키친타월로 눌러 물기를 빼고 1.5cm 두께로 썰어요.","전분을 얇게 묻혀 기름 두른 팬에서 앞뒤로 노릇하게 구워요.","덜어둔 소스를 부어 졸이고 밥 위에 올려요."]}},
+  5:{menu:"새우 마늘 파스타",side:"알리오올리오",time:"20분",
+     ing:["스파게티 200g","새우 200g","마늘 5쪽","방울토마토(선택)","chilli flakes"],
+     steps:["면을 소금물에 표시 시간보다 1분 짧게 삶고 면수 한 컵을 남겨요.","올리브오일 5큰술에 편 마늘·페퍼론치노를 약불로 노릇하게 볶아요.","새우(와 토마토)를 넣고 익으면 면과 면수를 넣어 섞어요.","소금으로 간 맞추고 올리브오일 한 바퀴 더."]},
+  6:{menu:"소고기 불고기",side:"상추쌈",time:"40분",
+     ing:["얇은 소고기 350g","양파 ½","당근 ⅓","버섯","대파","상추"],
+     steps:["고기를 결 반대로 얇게 썰어요.","간장 3, 설탕 1.5, 참기름 1, 다진 마늘 1 큰술, 후추로 30분 이상 재워요.","센 불에 채소와 함께 빠르게 볶아요.","상추에 싸서 쌈장이나 고추장과 함께."],
+     tip:"아침에 재워서 냉장고에 두면 저녁에 볶기만 하면 돼요.",
+     alt:{menu:"버섯 불고기",ing:["느타리·새송이 버섯 200g","양파 ¼","대파 ½"],
+       steps:["고기에 넣기 전에 불고기 양념의 ⅓을 따로 덜어두세요.","버섯은 손으로 길게 찢어 덜어둔 양념에 10분만 재워요.","센 불에서 양파와 함께 수분이 날아갈 때까지 볶아요.","고기와 똑같이 상추에 싸서 먹어요."],
+       tip:"두 가지 다 같은 팬에 할 거면 버섯을 먼저 볶고 고기는 나중에 하세요."}},
+  0:{menu:"김치볶음밥",side:"계란프라이",time:"20분",
+     ing:["밥 2공기","김치 1컵","대파","계란 2"],
+     steps:["기름이나 버터에 송송 썬 대파를 볶아 파기름을 내요.","잘게 썬 김치를 넣고 3분 볶아요.","밥을 넣고 간장 1큰술(고추장 ½ 선택)로 간하며 볶아요.","계란프라이를 올려요."],
+     tip:"남은 채소가 있으면 다 넣어서 냉장고를 비우는 날이에요."}
+};
+const ORDER=[1,2,3,4,5,6,0];
+
+const SHOP=[
+  {id:"pork",g:"meat",name:"돼지 앞다리살",en:"pork shoulder (얇게 썬 것)",qty:"400g",store:"Asda",days:[1]},
+  {id:"salmon",g:"meat",name:"연어 필렛",en:"salmon fillets",qty:"2조각",store:"M&S",days:[2]},
+  {id:"chicken",g:"meat",name:"뼈 없는 닭다리살",en:"boneless chicken thighs",qty:"500g",store:"Asda",days:[4]},
+  {id:"prawn",g:"meat",name:"생새우",en:"raw king prawns",qty:"200g",store:"Sainsbury's",days:[5]},
+  {id:"beef",g:"meat",name:"얇은 소고기",en:"thin-cut / minute steak",qty:"350g",store:"M&S",days:[6]},
+  {id:"squid",g:"meat",name:"오징어",en:"squid (냉동 손질 오징어)",qty:"250g",store:"Sainsbury's",days:[1],wife:true},
+  {id:"tofu",g:"fridge",name:"단단한 두부",en:"firm tofu",qty:"1팩",store:"Sainsbury's",days:[3,4],wife:true},
+  {id:"eggs",g:"fridge",name:"계란",en:"eggs",qty:"12개",store:"어디서나",days:[1,3,0]},
+  {id:"onion",g:"veg",name:"양파",en:"onions",qty:"1망",store:"Asda",days:[1,3,6]},
+  {id:"spring",g:"veg",name:"대파 대신",en:"spring onions",qty:"2단",store:"어디서나",days:[1,3,6,0]},
+  {id:"garlic",g:"veg",name:"마늘",en:"garlic",qty:"1통",store:"어디서나",days:[1,4,5,6]},
+  {id:"potato",g:"veg",name:"베이비 감자",en:"baby potatoes",qty:"1kg",store:"Asda",days:[2,3]},
+  {id:"broc",g:"veg",name:"브로콜리",en:"broccoli",qty:"2개",store:"어디서나",days:[2,4]},
+  {id:"courg",g:"veg",name:"애호박 대신",en:"courgette",qty:"1개",store:"어디서나",days:[3]},
+  {id:"mush",g:"veg",name:"양송이 버섯",en:"chestnut mushrooms",qty:"250g",store:"어디서나",days:[3,6]},
+  {id:"oyster",g:"veg",name:"느타리·새송이 버섯",en:"oyster / king oyster mushrooms",qty:"200g",store:"Sainsbury's",days:[6],wife:true},
+  {id:"carrot",g:"veg",name:"당근",en:"carrots",qty:"소포장",store:"Asda",days:[1,6]},
+  {id:"lettuce",g:"veg",name:"상추",en:"little gem / romaine",qty:"1팩",store:"어디서나",days:[6]},
+  {id:"lemon",g:"veg",name:"레몬",en:"lemon",qty:"1개",store:"어디서나",days:[2]},
+  {id:"tomato",g:"veg",name:"방울토마토 (선택)",en:"cherry tomatoes",qty:"1팩",store:"어디서나",days:[5]}
+];
+const GROUPS={meat:"고기 · 해산물",fridge:"냉장",veg:"채소 · 과일",pantry:"집에 없는 기본 재료"};
+const STORES=["전체","Asda","Sainsbury's","M&S","어디서나","한인마트"];
+const PANTRY=["쌀","스파게티","간장","참기름","설탕","고춧가루","고추장","된장","김치","올리브오일","버터","후추","페퍼론치노 (chilli flakes)","옥수수전분 (cornflour)","멸치 육수 또는 vegetable stock"];
+
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+let shopDone=store.get("shopDone",{});
+let pantryHave=store.get("pantryHave",{});
+let skipped=store.get("skipped",{});
+let filter="전체", hideDone=false;
+let today=new Date().getDay();
+let wake=null;
+async function setWake(on){
+  try{
+    if(on&&!wake){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>{if(!document.hidden){wake=null;syncCook()}})}
+    else if(!on&&wake){const w=wake;wake=null;await w.release()}
+  }catch(e){wake=null}
+  syncCook();
+}
+let cookWanted=false;
+function syncCook(){document.querySelectorAll(".cook").forEach(b=>{b.setAttribute("aria-pressed",!!wake);b.textContent=wake?"요리 끝 (화면 꺼짐 허용)":"요리 시작 (화면 켜두기)"})}
+/* timers */
+let timers=[],actx=null,tick=null;
+function beep(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();[0,0.35,0.7].forEach(o=>{const g=actx.createGain(),osc=actx.createOscillator();osc.frequency.value=880;g.gain.value=0.25;osc.connect(g);g.connect(actx.destination);osc.start(actx.currentTime+o);osc.stop(actx.currentTime+o+0.2)})}catch(e){}}
+function fmt(ms){const s=Math.max(0,Math.ceil(ms/1000));return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`}
+function renderTimers(){
+  const bar=document.getElementById("timerBar");
+  bar.hidden=!timers.length;document.body.classList.toggle("has-timer",!!timers.length);
+  bar.innerHTML=timers.map((t,i)=>{const left=t.end-Date.now(),done=left<=0;
+    return `<div class="t${done?" done":""}"><span class="tl">${done?"다 됐어요! ":""}${t.label}</span><span class="tt">${done?"":fmt(left)}</span><button data-ti="${i}">${done?"확인":"취소"}</button></div>`}).join("");
+}
+function startTick(){if(tick)return;tick=setInterval(()=>{
+  timers.forEach(t=>{if(!t.rang&&Date.now()>=t.end){t.rang=true;beep();if(navigator.vibrate)navigator.vibrate([300,150,300,150,300])}});
+  renderTimers();if(!timers.length){clearInterval(tick);tick=null}},500)}
+document.addEventListener("click",e=>{
+  const tb=e.target.closest(".tmr");
+  if(tb){e.stopPropagation();try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(_){}
+    timers.push({label:tb.dataset.label,end:Date.now()+(+tb.dataset.min)*60000});renderTimers();startTick();return}
+  const tx_=e.target.closest("#timerBar button");
+  if(tx_){timers.splice(+tx_.dataset.ti,1);renderTimers();return}
+  const li=e.target.closest("ol.steps li"); if(li){li.classList.toggle("stepdone");return}
+  const sb=e.target.closest(".skipbtn");
+  if(sb){const d=+sb.dataset.skip;if(skipped[d])delete skipped[d];else skipped[d]=true;store.set("skipped",skipped);
+    const open=[...document.querySelectorAll(".day.open")].map(x=>x.dataset.d);
+    renderHero();renderWeek();renderShop();
+    open.forEach(o=>{const li=document.querySelector(`.day[data-d="${o}"]`);li.classList.add("open");li.querySelector(".detail").hidden=false;li.querySelector("button").setAttribute("aria-expanded","true")});
+    if(typeof renderDayThumbs==="function")renderDayThumbs();return}
+  if(e.target.closest(".cook")){cookWanted=!wake;setWake(cookWanted)}
+});
+
+const stepHTML=menu=>(t,i)=>{
+  const m=t.match(/(\d+)(?:~(\d+))?분/);
+  return `<li>${t}${m?` <button class="tmr" data-min="${m[1]}" data-label="${menu} ${i+1}단계">⏱ ${m[1]}분</button>`:""}</li>`;
+};
+function mealHTML(m,d){
+  const sk=!!skipped[d];
+  return `${sk?`<div class="skipnote">이날은 건너뛰기로 했어요. 이날만 쓰는 재료는 장보기 목록에서 빠졌어요.</div>`:""}
+  <button class="skipbtn" data-skip="${d}" aria-pressed="${sk}">${sk?"다시 요리하기":"이날 외식 · 건너뛰기"}</button>
+  <h3>재료 (2인)</h3><ul class="ing">${m.ing.map(i=>`<li>${i}</li>`).join("")}</ul>
+  <h3>만드는 법</h3><ol class="steps">${m.steps.map(stepHTML(m.menu)).join("")}</ol>
+  <p class="hint">끝낸 단계는 눌러서 지워가며 요리하세요.</p>
+  ${m.tip?`<div class="tip">${m.tip}</div>`:""}
+  ${m.alt?`<div class="alt"><h4>${m.alt.menu}</h4><p class="who">아내분 몫 · 고기 대신</p>
+    <h3>재료 (1인)</h3><ul class="ing">${m.alt.ing.map(i=>`<li>${i}</li>`).join("")}</ul>
+    <h3>만드는 법</h3><ol class="steps">${m.alt.steps.map(stepHTML(m.alt.menu)).join("")}</ol>
+    ${m.alt.tip?`<div class="tip">${m.alt.tip}</div>`:""}</div>`:""}
+  ${"wakeLock" in navigator?`<button class="cook" aria-pressed="${!!wake}">${wake?"요리 끝 (화면 꺼짐 허용)":"요리 시작 (화면 켜두기)"}</button>`:""}`;
+}
+
+function renderHero(){
+  const m=MEALS[today];
+  const d=new Date();
+  document.getElementById("hero").innerHTML=
+    `<p class="when">${d.getMonth()+1}월 ${d.getDate()}일 ${DAYS[today]}요일, 오늘 저녁은</p>
+     <h1${skipped[today]?' class="skipped"':""}>${m.menu}</h1><p class="side">${skipped[today]?"오늘은 건너뛰기로 했어요":`${m.side}${m.alt?` · 아내분은 ${m.alt.menu}`:""}`}</p><span class="time">${m.time}</span>`;
+  let box=document.getElementById("todayDetail");
+  if(!box){box=document.createElement("div");box.id="todayDetail";box.className="today-detail";document.getElementById("hero").after(box)}
+  box.innerHTML=mealHTML(m,today);
+}
+
+function renderWeek(){
+  const ul=document.getElementById("days");
+  ul.innerHTML=ORDER.map(d=>{
+    const m=MEALS[d];
+    return `<li class="day${d===today?" today":""}${skipped[d]?" skipped":""}" data-d="${d}">
+      <button aria-expanded="false"><span class="dname">${DAYS[d]}</span>
+      <span class="menu">${m.menu}${m.alt?`<span class="badge">아내: ${m.alt.menu}</span>`:""}<small>${skipped[d]?"건너뜀":`${m.side} · ${m.time}`}${d===today?" · 오늘":""}</small></span>
+      <span class="chev" aria-hidden="true">›</span></button>
+      <div class="detail" hidden>${mealHTML(m,d)}</div></li>`;
+  }).join("");
+  ul.querySelectorAll(".day > button").forEach(b=>b.addEventListener("click",()=>{
+    const li=b.parentElement, det=li.querySelector(".detail"), open=det.hidden;
+    det.hidden=!open; li.classList.toggle("open",open); b.setAttribute("aria-expanded",open);
+  }));
+}
+
+function allShop(){
+  const extra=PANTRY.filter(p=>pantryHave[p]===false||shopDone["p:"+p]).map(p=>({id:"p:"+p,g:"pantry",name:p,en:"",qty:"",store:p==="된장"?"한인마트":"어디서나",days:[],pantry:true}));
+  return SHOP.concat(extra);
+}
+function neededShop(){return allShop().filter(i=>!i.days.length||i.days.some(d=>!skipped[d]))}
+function renderShop(){
+  const f=document.getElementById("storeFilter");
+  f.innerHTML=STORES.map(s=>`<button class="chip" aria-pressed="${s===filter}" data-s="${s}">${s}</button>`).join("");
+  f.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{filter=c.dataset.s;renderShop()});
+
+  const visible=neededShop().filter(i=>filter==="전체"||i.store===filter);
+  const done=visible.filter(i=>shopDone[i.id]).length;
+  document.getElementById("bar").style.width=visible.length?(done/visible.length*100)+"%":"0";
+  document.getElementById("barLabel").textContent=`${visible.length}개 중 ${done}개 담았어요`;
+
+  const list=visible.filter(i=>!(hideDone&&shopDone[i.id]));
+  const out=document.getElementById("shopList");
+  if(!list.length){out.innerHTML=`<p class="empty">${visible.length?"다 담았어요. 계산대로 가면 돼요.":"이 마트에서 살 품목이 없어요."}</p>`}
+  else{
+    out.innerHTML=Object.keys(GROUPS).map(g=>{
+      const items=list.filter(i=>i.g===g); if(!items.length)return "";
+      return `<div class="group"><h2>${GROUPS[g]}</h2><ul class="items">${items.map(i=>`
+        <li class="item${shopDone[i.id]?" done":""}"><label>
+          <input type="checkbox" data-id="${i.id}" ${shopDone[i.id]?"checked":""}>
+          <span class="name">${i.name} <span lang="en">${i.en}</span><small>${i.pantry?"집 재료 탭에서 없다고 표시한 재료":""}${i.pantry?"":`${i.wife?'<span class="tag">아내분용 포함 · </span>':""}${i.store} · ${i.days.map(d=>DAYS[d]).join(", ")}요일에 써요`}</small></span>
+          <span class="qty">${i.qty}</span></label></li>`).join("")}</ul></div>`;
+    }).join("");
+    out.querySelectorAll("input").forEach(x=>x.onchange=()=>{const id=x.dataset.id;shopDone[id]=x.checked;
+      if(id.startsWith("p:")){pantryHave[id.slice(2)]=x.checked;store.set("pantryHave",pantryHave);renderPantry(false)}
+      store.set("shopDone",shopDone);renderShop()});
+  }
+  const left=neededShop().filter(i=>!shopDone[i.id]).length;
+  const dropped=allShop().filter(i=>i.days.length&&i.days.every(d=>skipped[d]));
+  document.getElementById("dropNote").textContent=dropped.length?`건너뛴 날 때문에 안 사도 되는 것: ${dropped.map(i=>i.name).join(", ")}`:"";
+  document.getElementById("shopCount").textContent=left?left:"✓";
+}
+
+function renderPantry(alsoShop=true){
+  const ul=document.getElementById("pantryList");
+  ul.innerHTML=PANTRY.map(p=>{const v=pantryHave[p];
+    return `<li class="pitem"><span class="name">${p}</span><span class="seg" role="group" aria-label="${p}">
+      <button data-p="${p}" data-v="1" aria-pressed="${v===true}">있어요</button>
+      <button data-p="${p}" data-v="0" aria-pressed="${v===false}" class="no">없어요</button></span></li>`}).join("");
+  ul.querySelectorAll("button").forEach(b=>b.onclick=()=>{const p=b.dataset.p,v=b.dataset.v==="1";
+    pantryHave[p]=pantryHave[p]===v?undefined:v; if(pantryHave[p]===undefined)delete pantryHave[p];
+    store.set("pantryHave",pantryHave);renderPantry()});
+  if(alsoShop)renderShop();
+  const unk=PANTRY.filter(p=>pantryHave[p]===undefined).length;
+  document.getElementById("pantryCount").textContent=unk?unk:"✓";
+  document.getElementById("pantryNote").textContent=unk?`아직 확인 안 한 재료가 ${unk}개 있어요.`:"모두 확인했어요. 없는 재료는 장보기 목록에 들어가 있어요.";
+}
+
+document.getElementById("shareList").onclick=async()=>{
+  const left=neededShop().filter(i=>!shopDone[i.id]);
+  const st=document.getElementById("shareStatus");
+  if(!left.length){st.textContent="남은 품목이 없어요.";return}
+  const by={};left.forEach(i=>(by[i.store]=by[i.store]||[]).push(`- ${i.name}${i.en?` (${i.en})`:""}${i.qty?` ${i.qty}`:""}`));
+  const text="우리집 저녁 장보기\n\n"+STORES.filter(s=>by[s]).map(s=>`[${s}]\n${by[s].join("\n")}`).join("\n\n");
+  try{
+    if(navigator.share){await navigator.share({title:"장보기 목록",text});st.textContent=""}
+    else{await navigator.clipboard.writeText(text);st.textContent="목록을 복사했어요. 메시지에 붙여넣으세요."}
+  }catch(e){if(e&&e.name!=="AbortError")st.textContent="보내지 못했어요. 다시 시도해 주세요."}
+};
+document.getElementById("hideDone").onclick=e=>{hideDone=!hideDone;e.target.setAttribute("aria-pressed",hideDone);renderShop()};
+document.getElementById("resetShop").onclick=()=>{shopDone={};store.set("shopDone",shopDone);renderShop()};
+document.getElementById("resetPantry").onclick=()=>{pantryHave={};store.set("pantryHave",pantryHave);renderPantry()};
+const tabBtns=[...document.querySelectorAll(".tabs button")];
+function showTab(t){
+  tabBtns.forEach(b=>{const on=b===t;b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1;document.getElementById(b.getAttribute("aria-controls")).hidden=!on});
+  store.set("tab",t.id);
+}
+tabBtns.forEach((t,i)=>{t.onclick=()=>showTab(t);
+  t.onkeydown=e=>{const k={ArrowRight:1,ArrowLeft:-1}[e.key];if(!k)return;const n=tabBtns[(i+k+tabBtns.length)%tabBtns.length];showTab(n);n.focus()}});
+showTab(document.getElementById(store.get("tab","t-week"))||tabBtns[0]);
+
+function weekKey(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10)}
+function checkWeek(){
+  const k=weekKey(),old=store.get("weekKey",null);
+  if(old&&old!==k&&(Object.values(shopDone).some(Boolean)||Object.keys(skipped).length))document.getElementById("weekBanner").hidden=false;
+  store.set("weekKey",k);
+}
+document.getElementById("wbClear").onclick=()=>{shopDone={};skipped={};store.set("shopDone",shopDone);store.set("skipped",skipped);renderHero();renderWeek();renderShop();document.getElementById("weekBanner").hidden=true};
+document.getElementById("wbKeep").onclick=()=>{document.getElementById("weekBanner").hidden=true};
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState!=="visible")return;
+  const d=new Date().getDay();
+  if(d!==today){today=d;renderHero();renderWeek();if(typeof renderDayThumbs==="function")renderDayThumbs()}
+  checkWeek();
+  if(cookWanted&&!wake)setWake(true);
+  renderTimers();
+});
+
+renderHero();renderWeek();renderPantry();checkWeek();
+
+/* ---------- photos (stored on this phone, IndexedDB) ---------- */
+const pDay=document.getElementById("photoDay");
+pDay.innerHTML=ORDER.flatMap(d=>{const m=MEALS[d];const o=[`<option value="${d}|${m.menu}">${DAYS[d]} · ${m.menu}</option>`];if(m.alt)o.push(`<option value="${d}|${m.alt.menu}">${DAYS[d]} · ${m.alt.menu} (아내분)</option>`);return o}).join("")+`<option value="-1|기타">기타 요리</option>`;
+pDay.value=`${today}|${MEALS[today].menu}`;
+const pBtn=document.getElementById("photoBtn"),pIn=document.getElementById("photoInput"),pStat=document.getElementById("photoStatus"),gal=document.getElementById("gallery");
+let photos=[],urls=[],idb=null;
+
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open("dinner-photos",1);
+  r.onupgradeneeded=()=>r.result.createObjectStore("photos",{keyPath:"id"});
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function tx(mode,fn){return new Promise((res,rej)=>{const t=idb.transaction("photos",mode);const st=t.objectStore("photos");const out=fn(st);
+  t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error)})}
+async function loadPhotos(){
+  const all=await tx("readonly",st=>st.getAll());
+  urls.forEach(u=>URL.revokeObjectURL(u));urls=[];
+  photos=(all||[]).sort((a,b)=>b.takenAt.localeCompare(a.takenAt)).map(p=>{const u=URL.createObjectURL(p.blob);urls.push(u);return {...p,url:u}});
+  renderGallery();
+}
+async function showMeter(){
+  const el=document.getElementById("meter");if(!el)return;
+  let t=`사진 ${photos.length}장`;
+  try{if(navigator.storage&&navigator.storage.estimate){const e=await navigator.storage.estimate();t+=` · 이 앱이 약 ${Math.max(1,Math.round((e.usage||0)/1048576))}MB 사용 중`}}catch(_){}
+  el.textContent=t;
+}
+function esc(t){const d=document.createElement("div");d.textContent=t;return d.innerHTML}
+function renderGallery(){
+  document.getElementById("photoCount").textContent=photos.length||"";
+  if(!photos.length){gal.innerHTML=`<p class="empty" style="grid-column:1/-1">아직 사진이 없어요. 오늘 만든 요리를 찍어 올려보세요.</p>`;renderDayThumbs();showMeter();return}
+  let lastWk="";
+  gal.innerHTML=photos.map(p=>{const d=new Date(p.takenAt);
+    const m=new Date(d);m.setHours(0,0,0,0);m.setDate(m.getDate()-((m.getDay()+6)%7));
+    const wk=`${m.getMonth()+1}월 ${m.getDate()}일 주`, head=wk!==lastWk?`<h2 class="wk">${wk}</h2>`:"";lastWk=wk;
+    return head+(()=>{
+    return `<figure class="photo"><img src="${p.url}" alt="${esc(p.menu)} 사진" loading="lazy">
+    <figcaption><b>${esc(p.menu)}</b>${d.getMonth()+1}월 ${d.getDate()}일 ${DAYS[d.getDay()]}요일<br>
+    <a class="del" href="${p.url}" download="${esc(p.menu)}.jpg">저장</a> &nbsp;
+    <button class="del" data-id="${p.id}">삭제</button></figcaption></figure>`})()}).join("");
+  showMeter();
+  gal.querySelectorAll("button.del").forEach(b=>b.onclick=()=>delPhoto(b.dataset.id));
+  renderDayThumbs();
+}
+function renderDayThumbs(){
+  document.querySelectorAll(".day").forEach(li=>{
+    const d=+li.dataset.d, det=li.querySelector(".detail");
+    det.querySelector(".thumbs")?.remove();
+    const mine=photos.filter(p=>p.day===d).slice(0,6);
+    if(mine.length){const w=document.createElement("div");w.className="thumbs";
+      w.innerHTML=mine.map(p=>`<img src="${p.url}" alt="${esc(p.menu)} 사진">`).join("");det.appendChild(w)}
+  });
+}
+async function shrink(file){
+  try{
+    const bmp=await createImageBitmap(file,{imageOrientation:"from-image"});
+    const max=1600,sc=Math.min(1,max/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas");c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);
+    c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+    return await new Promise(r=>c.toBlob(b=>r(b||file),"image/jpeg",0.85));
+  }catch(e){return file}
+}
+async function delPhoto(id){
+  if(!confirm("이 사진을 삭제할까요?"))return;
+  try{await tx("readwrite",st=>st.delete(id));await loadPhotos()}
+  catch(e){pStat.textContent="삭제하지 못했어요. 다시 시도해 주세요."}
+}
+pBtn.onclick=()=>pIn.click();
+pIn.onchange=async()=>{
+  const f=pIn.files[0]; pIn.value=""; if(!f)return;
+  const [day,menu]=pDay.value.split("|");
+  pBtn.disabled=true; pStat.textContent="사진 저장하는 중…";
+  try{
+    const blob=await shrink(f);
+    const id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    await tx("readwrite",st=>st.put({id,day:+day,menu,blob,takenAt:new Date().toISOString()}));
+    await loadPhotos(); pStat.textContent="저장했어요.";
+  }catch(e){pStat.textContent="사진을 저장하지 못했어요. 휴대폰 저장 공간을 확인해 주세요."}
+  finally{pBtn.disabled=false}
+};
+const bStat=document.getElementById("backupStatus");
+function toDataURL(b){return new Promise((r,j)=>{const f=new FileReader();f.onload=()=>r(f.result);f.onerror=()=>j(f.error);f.readAsDataURL(b)})}
+function fromDataURL(u){const [h,b64]=u.split(",");const bin=atob(b64);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:(h.match(/data:([^;]+)/)||[])[1]||"image/jpeg"})}
+document.getElementById("backupBtn").onclick=async()=>{
+  bStat.textContent="백업 파일 만드는 중…";
+  try{
+    const all=await tx("readonly",st=>st.getAll())||[];
+    const ph=[];for(const p of all)ph.push({id:p.id,day:p.day,menu:p.menu,takenAt:p.takenAt,data:await toDataURL(p.blob)});
+    const keep={};["shopDone","pantryHave","skipped","weekKey"].forEach(k=>keep[k]=store.get(k,null));
+    const blob=new Blob([JSON.stringify({app:"uri-jip-jeonyeok",v:1,savedAt:new Date().toISOString(),settings:keep,photos:ph})],{type:"application/json"});
+    const name=`우리집저녁-백업-${new Date().toISOString().slice(0,10)}.json`;
+    const file=new File([blob],name,{type:"application/json"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name});bStat.textContent="백업 파일을 보냈어요. 파일 앱이나 드라이브에 저장해 두세요."}
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();bStat.textContent="백업 파일을 저장했어요."}
+  }catch(e){bStat.textContent=e&&e.name==="AbortError"?"":"백업 파일을 만들지 못했어요. 다시 시도해 주세요."}
+};
+document.getElementById("restoreBtn").onclick=()=>document.getElementById("restoreInput").click();
+document.getElementById("restoreInput").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(d.app!=="uri-jip-jeonyeok")throw new Error("not ours");
+    if(!confirm(`사진 ${d.photos.length}장과 체크 기록을 불러올까요? 지금 체크 기록은 백업 내용으로 바뀌어요.`))return;
+    bStat.textContent="불러오는 중…";
+    for(const p of d.photos)await tx("readwrite",st=>st.put({id:p.id,day:p.day,menu:p.menu,takenAt:p.takenAt,blob:fromDataURL(p.data)}));
+    Object.entries(d.settings||{}).forEach(([k,v])=>{if(v!==null)store.set(k,v)});
+    bStat.textContent=`사진 ${d.photos.length}장을 불러왔어요.`;
+    setTimeout(()=>location.reload(),900);
+  }catch(err){bStat.textContent="이 파일은 우리집 저녁 백업 파일이 아니에요."}
+};
+
+(async()=>{
+  try{idb=await openDB();if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();await loadPhotos()}
+  catch(e){document.getElementById("uploadBox").hidden=true;gal.innerHTML=`<p class="empty">이 브라우저에서는 사진을 저장할 수 없어요. 사파리나 크롬에서 열어주세요.</p>`}
+})();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
